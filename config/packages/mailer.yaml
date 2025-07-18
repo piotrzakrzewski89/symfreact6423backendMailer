@@ -1,0 +1,4 @@
+# config/packages/mailer.yaml
+framework:
+    mailer:
+        dsn: smtp://mailpit:1025

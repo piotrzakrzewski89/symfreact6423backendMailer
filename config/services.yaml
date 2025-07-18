@@ -1,0 +1,15 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Domain/Entity/'
+            - '../src/App/Infrastructure/FrameworkKernel.php'
+
+    App\Domain\Service\EmailSenderInterface: '@App\Infrastructure\Service\SymfonyMailerSender'

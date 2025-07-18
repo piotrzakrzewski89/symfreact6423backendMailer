@@ -1,0 +1,56 @@
+version: '3'
+services:
+    php:
+        build:
+            context: ./docker/php
+            args:
+                TIMEZONE: Europe/Warsaw
+        container_name: mailpit-php
+        volumes:
+            - ./:/app
+            - './docker/php/conf.d:/usr/local/etc/php/conf.d'
+            - 'php_composer_data:/root/.composer'
+        networks:
+            - network
+    www:
+        build: ./docker/www
+        container_name: mailpit-www
+        ports:
+            - "127.0.0.2:8080:80"
+        volumes:
+            - ./:/app
+            - ./docker/www/conf.d:/etc/nginx/conf.d
+        networks:
+            - network
+
+    db:
+        image: "mariadb:11"
+        container_name: mailpit-db
+        volumes:
+            - mailer_db_data:/var/lib/mysql
+        networks:
+            - network
+        ports:
+            - "127.0.0.2:3307:3306"
+        environment:
+            - TZ=UTC
+            - MYSQL_ROOT_PASSWORD=root
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+    mailpit:
+        image: axllent/mailpit
+        container_name: mailpit
+        ports:
+            - "127.0.0.2:8025:8025"
+        networks:
+            - network
+
+volumes:
+    mailer_db_data:
+    php_composer_data:
+
+networks:
+    network: null
