@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Handler;
 
-use App\Application\Command\SendEmailCommand;
+use App\Application\Message\SendMailMessage;
 use App\Domain\Entity\SendEmail;
 use App\Domain\Repository\SendEmailRepository;
 use App\Infrastructure\Service\EmailSenderInterface;
@@ -19,16 +19,16 @@ class SendEmailHandler
         private SendEmailRepository $repository
     ) {}
 
-    public function __invoke(SendEmailCommand $command): void
+    public function __invoke(SendMailMessage $message): void
     {
         $email = new SendEmail();
-        $email->setRecipient($command->recipient);
-        $email->setSubject($command->subject);
-        $email->setBody($command->body);
+        $email->setRecipient($message->recipient);
+        $email->setSubject($message->subject);
+        $email->setBody($message->body);
         $email->setSentAt(new DateTimeImmutable());
 
         try {
-            $this->emailSender->send($command->recipient, $command->subject, $command->body);
+            $this->emailSender->send($message->recipient, $message->subject, $message->body);
             $email->setStatus('sent');
         } catch (\Throwable $e) {
             $email->setStatus('error');

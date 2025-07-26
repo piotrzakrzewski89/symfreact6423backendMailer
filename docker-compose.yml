@@ -1,4 +1,3 @@
-version: '3'
 services:
     php:
         build:
@@ -11,17 +10,19 @@ services:
             - './docker/php/conf.d:/usr/local/etc/php/conf.d'
             - 'php_composer_data:/root/.composer'
         networks:
-            - network
-    www:
+            - network_mailer
+            - network_rabbit
+
+    mailer-www:
         build: ./docker/www
         container_name: mailpit-www
         ports:
-            - "127.0.0.2:8080:80"
+            - "8080:8080"
         volumes:
             - ./:/app
             - ./docker/www/conf.d:/etc/nginx/conf.d
         networks:
-            - network
+            - network_mailer
 
     db:
         image: "mariadb:11"
@@ -29,9 +30,9 @@ services:
         volumes:
             - mailer_db_data:/var/lib/mysql
         networks:
-            - network
+            - network_mailer
         ports:
-            - "127.0.0.2:3307:3306"
+            - "3307:3306"
         environment:
             - TZ=UTC
             - MYSQL_ROOT_PASSWORD=root
@@ -44,13 +45,29 @@ services:
         image: axllent/mailpit
         container_name: mailpit
         ports:
-            - "127.0.0.2:8025:8025"
+            - "8025:8025"
         networks:
-            - network
+            - network_mailer
+
+    mailer-worker:
+        build:
+            context: ./docker/php
+        command: php bin/console messenger:consume rabbitmq --time-limit=3600 --memory-limit=128M
+        restart: always
+        networks:
+            - network_mailer
+            - network_rabbit
+        volumes:
+            - ./:/app
 
 volumes:
     mailer_db_data:
     php_composer_data:
 
 networks:
-    network: null
+  network_mailer:
+    name: network_mailer
+    driver: bridge
+  network_rabbit:
+    external: true
+    name: network_rabbit

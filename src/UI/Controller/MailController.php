@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\UI\Controller;
 
-use App\Application\Command\SendEmailCommand;
 use App\Application\Handler\SendEmailHandler;
+use App\Application\Message\SendMailMessage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,7 +45,7 @@ class MailController extends AbstractController
             return new JsonResponse(['error' => 'Missing required fields'], 400);
         }
 
-        $this->sendEmailHandler->__invoke(new SendEmailCommand(
+        $this->sendEmailHandler->__invoke(new SendMailMessage(
             $data['recipient'],
             $data['subject'],
             $data['body']
